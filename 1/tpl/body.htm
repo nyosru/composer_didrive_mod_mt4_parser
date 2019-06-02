@@ -1,0 +1,194 @@
+{% spaceless %}
+
+<style>
+    .show_table_stab{
+        max-height: 600px;
+        overflow: auto;
+    }
+
+    .show_table_stab thead{
+        position: -webkit-sticky;
+        position: -moz-sticky;
+        position: -ms-sticky;
+        position: -o-sticky;
+        position: sticky;
+        top: 0px;
+        background-color: rgba(255,255,255,0.7);
+    }
+    .text-green{ color: green; }
+</style>
+
+<div class="widget-2 text-right expanded">
+    <div class="container drag-this-up">
+        {#
+        <img src="https://via.placeholder.com/875x761" alt="widget-image">
+        #}
+        <div class="row">
+            <div class="col-lg-12">
+
+                <p class="pretitle">Статистика сделок</p>
+
+                <br/>
+                <br/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+
+                {% if 1 == 2 %}
+                {{ pa( sdelki )}}
+                {% endif %}
+
+                <div class='show_table_stab'>
+                    <table class="table" >
+
+                        <thead>
+
+                            <tr>
+                                <th>Дата</th>
+                                <th>Кол-во <abbr title="сколько открыто сделок" >сделок</abbr></th>
+                                <th>Итог (%)</th>
+                            </tr>
+
+                        </thead>
+                        <tbody>
+
+                            {% for k, v in mt4parse.items %} 
+                            
+                            {% if date( v.OpenTime ) >= date("2019-06-01 00:00:01") %}
+                            {% set depo = 300 %}
+                            {% elseif date( v.OpenTime ) >= date("2019-05-01 00:00:01") %}
+                            {% set depo = 300 %}
+                            {% else %}
+                            {% set depo = 0 %}
+                            {% endif %}
+                            
+                            
+                            {% if depo > 0 %}
+                            <tr>
+                                <td>{{ v.OpenTime }}</td>
+                                <td>{{ v.colvo_items }}</td>
+                                <td>
+                                    {% set ss = ( v.sum_prof / ( depo / 100 ) )|round(2) %}
+                                    {% if ss > 0 %}
+                                    <b class='text-green' >+ {{ ss }}</b>
+                                    {% else %}
+                                    {{ ss }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <h3>Валютные пары, металлы и газ</h3>
+                <br/>
+                <br/>
+
+                <p>
+                    Статистика по операциям и текущие результаты работы
+                </p>
+
+                {#
+                <a href="#" class="button-link-1 alt-bg pushtop-30 pull-right">LEARN MORE</a>
+                #}
+
+                
+                <br/>
+                <br/>
+                
+                
+
+                <div class='show_table_stab'>
+                    <table class="table" >
+
+                        <thead>
+
+                            <tr>
+                                <th>Дата</th>
+                                <th>Кол-во <abbr title="сколько открыто сделок" >сделок</abbr></th>
+                                <th>Итог (%)</th>
+                            </tr>
+
+                        </thead>
+                        <tbody>
+
+                            {% for k, v in mt4parse.mont %} 
+                            
+                                {% if v.year is defined  and v.year == '2019' %}
+                                    {% if v.mont == '05' %}
+                                    {% set depo = 300 %}
+                                    {# % elseif v.mont == '06' %}
+                                    {% set depo = 300 % #}
+                                    {% endif %}
+                                {% else %}
+                                {% set depo = 0 %}
+                                {% endif %}
+                            
+                                {% if depo > 0 %}
+                                <tr>
+                                    <td>
+                                        
+                                        {{ v.year }}
+                                        
+                                        {% if v.mont == '01' %}
+                                        Январь
+                                        {% elseif v.mont == '02' %}
+                                        Февраль
+                                        {% elseif v.mont == '03' %}
+                                        Март
+                                        {% elseif v.mont == '04' %}
+                                        Апрель
+                                        {% elseif v.mont == '05' %}
+                                        Май
+                                        {% elseif v.mont == '06' %}
+                                        Июнь
+                                        {% elseif v.mont == '07' %}
+                                        Июль
+                                        {% elseif v.mont == '08' %}
+                                        Август
+                                        {% elseif v.mont == '09' %}
+                                        Сентябрь
+                                        {% elseif v.mont == '10' %}
+                                        Октябрь
+                                        {% elseif v.mont == '11' %}
+                                        Ноябрь
+                                        {% elseif v.mont == '12' %}
+                                        Декабрь
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ v.colvo_items }}</td>
+                                    <td>
+                                        {% set ss = ( v.sum_prof / ( depo / 100 ) )|round(2) %}
+                                        {% if ss > 0 %}
+                                        <b class='text-green' >+ {{ ss }}</b>
+                                        {% else %}
+                                        {{ ss }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+                
+                
+                
+                
+                
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endspaceless %}

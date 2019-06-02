@@ -1,43 +1,52 @@
 <?php
 
-namespace Didrive\Mod;
+namespace Nyos\Mod;
 
 if (!defined('IN_NYOS_PROJECT'))
     throw new Exception('Что то пошло не так, обратитесь к администратору', 666);
 
 class Mt4 {
 
-    public static function addNewData( $db, array $data, $clear_old = true ) {
-        
-        $db -> exec('DROP TABLE `my_forex` ;');
+    public static function addNewData($db, string $folder, array $data, $clear_old = true) {
 
-//        $ff = $db->prepare('DELETE FROM `my_forex` WHERE `folder` = :folder ;');
-//        $ff->execute(array(':folder' => $folder));
+        // echo '<Br/>'.__FILE__.' ('.__LINE__.')';
+        // $db->exec('DROP TABLE `my_forex` ;');
 
-        $db->exec('CREATE TABLE IF NOT EXISTS my_forex (
-                `id_sdelka` INTEGER (20)    NOT NULL,
-                `dt`        DATETIME,
-                `dt2`       DATE,
-                `type`      VARCHAR (8),
-                `size`      DECIMAL (3, 2),
-                `item`      VARCHAR (15),
-                `sl`        DECIMAL (15, 6),
-                `tp`        DECIMAL (16, 6),
-                `dt_close`  DATETIME,
-                `dt_close2` DATE,
-                `price`     DECIMAL (16, 6),
-                `comis`     DECIMAL (10, 2),
-                `tax`       DECIMAL (10, 2),
-                `swap`      DECIMAL (10, 2),
-                `prof`      DECIMAL (10, 2),
-                `folder`    VARCHAR (50)    NOT NULL
-            ); ');
+        try {
 
-    \f\db\sql_insert_mnogo($db, 'my_forex', $in );
-        
-        
+            if ($clear_old === true) {
+                $ff = $db->prepare('DELETE FROM `my_forex` WHERE `folder` = :folder ;');
+                $ff->execute(array(':folder' => $folder));
+            }
+            
+        } catch (\PDOException $ex) {
+
+            if (strpos($ex->getMessage(), 'no such table') !== false) {
+
+                $db->exec('CREATE TABLE my_forex (
+                    `folder`    VARCHAR (50)    NOT NULL,
+                    `Ticket` INTEGER (20)    NOT NULL,
+                    `OpenTime`        DATETIME,
+                    `Type`      VARCHAR (8),
+                    `Size`      DECIMAL (5, 2),
+                    `Item`      VARCHAR (15),
+                    `Price`      DECIMAL (8, 5),
+                    `SL`      DECIMAL (5, 2),
+                    `TP`      DECIMAL (5, 2),
+                    `CloseTime`        DATETIME,
+                    `Commission`      DECIMAL (5, 2),
+                    `Taxes`      DECIMAL (5, 2),
+                    `Swap`      DECIMAL (5, 2),
+                    `Profit`      DECIMAL (5, 2)
+                    ); ');
+            }
+            
+        }
+
+
+        \f\db\sql_insert_mnogo($db, 'my_forex', $data, array('folder' => $folder));
     }
-    
+
     /**
      * парсинг стейтмента от герчика
      * @param string $link
@@ -55,18 +64,37 @@ class Mt4 {
 
         $bb = [];
 
+        $a = ['-', '/', ' '];
+        $a1 = '';
+
         foreach ($elements1 as $element1) {
 
             $b = [];
-
             $element2 = $element1->find('td');
 
             foreach ($element2 as $element) {
-                $b[] = $element->plaintext;
+                if (!isset($hh)) {
+                    $b[] = str_replace($a, $a1, $element->plaintext);
+                } else {
+                    $b[] = $element->plaintext;
+                }
             }
 
-            if (isset($b[0]) && is_numeric($b[0])) {
-                $bb[] = $b;
+            if (!isset($hh) && isset($b[0]) && $b[0] == 'Ticket') {
+                // \f\pa($b);
+                $hh = 1;
+                $bb1 = $b;
+            } elseif (isset($b[0]) && is_numeric($b[0])) {
+
+                foreach ($b as $k => $v) {
+                    if ($bb1[$k] == 'OpenTime') {
+                        $b1[$bb1[$k]] = str_replace('.', '-', $v);
+                    } else {
+                        $b1[$bb1[$k]] = $v;
+                    }
+                }
+
+                $bb[] = $b1;
             }
         }
 
@@ -87,10 +115,34 @@ class Mt4 {
      */
     public static function getInfo($db, string $folder) {
 
-        $ff = $db->prepare('SELECT dt2, sum(`prof`)  `sum_prof` , count(`id`) `colvo_items` FROM `my_forex` WHERE `folder` = :folder GROUP BY `dt2` ORDER BY `dt2` DESC ;');
+        $ff = $db->prepare('SELECT 
+                OpenTime, 
+                sum(`Profit`)  `sum_prof` , 
+                count(`Ticket`) `colvo_items` 
+            FROM 
+                `my_forex` 
+            WHERE 
+                `folder` = :folder 
+            GROUP BY 
+                strftime(\'%Y-%m-%d\',`OpenTime`)
+            ORDER BY 
+                `OpenTime` DESC 
+            ;');
         $ff->execute(array(':folder' => $folder));
 
-        $ff1 = $db->prepare('SELECT strftime(\'%m\',dt2) `mont`, strftime(\'%Y\',dt2) `year` , sum(`prof`) `sum_prof` , count(`id`) `colvo_items` FROM `my_forex` WHERE `folder` = :folder GROUP BY strftime(\'%Y\',`dt2`), strftime(\'%m\',`dt2`) ;');
+        $ff1 = $db->prepare('SELECT 
+                strftime(\'%m\',`OpenTime`) `mont`, 
+                strftime(\'%Y\',`OpenTime`) `year` , 
+                sum(`Profit`) `sum_prof` , 
+                count(`Ticket`) `colvo_items` 
+            FROM 
+                `my_forex` 
+            WHERE 
+                `folder` = :folder 
+            GROUP BY 
+                strftime(\'%Y\',`OpenTime`), 
+                strftime(\'%m\',`OpenTime`) 
+            ;');
         $ff1->execute(array(':folder' => $folder));
 
         return array(
@@ -98,7 +150,12 @@ class Mt4 {
             ,
             'mont' => $ff1->fetchAll()
         );
-        
+
+//        $ff1 = $db->prepare('SELECT * FROM `my_forex` LIMIT 1 ;');
+//        //$ff1->execute(array(':folder' => $folder));
+//        $ff1->execute();
+//
+//        return $ff1->fetchAll();
     }
 
 }
