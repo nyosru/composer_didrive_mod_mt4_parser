@@ -1,7 +1,7 @@
 {
     "name": "didrive_mod/mt4parse",
     "description": "парсинг пакетов стейтмента мета трейд 4",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "keywords": [
         "mt4", "didrive", "module", "nyos", "uralweb.info"
     ],

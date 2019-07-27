@@ -32,4 +32,7 @@ $vv['krohi'][1] = array(
     'uri' => $vv['now_level']['cfg.level']
 );
 
-$vv['tpl_body'] = \f\like_tpl('body', dir_mods_mod_vers_didrive_tpl, dir_site_module_nowlev_tpldidr, DR);
+//echo '$vv[\'tpl_body\'] = \f\like_tpl(\'body\', '. dir_mods_mod_vers_didrive_tpl .' , '. dir_site_module_nowlev_tpldidr .' , DR); ';
+//echo '<br/>';
+$vv['tpl_body'] = \f\like_tpl('body.htm', dir_mods_mod_vers_didrive_tpl, dir_site_module_nowlev_tpldidr, DR);
+//$vv['tpl_body'] = dir_mods_mod_vers_didrive_tpl.'body.htm';
